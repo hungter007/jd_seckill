@@ -3,15 +3,14 @@ import time
 import requests
 import json
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from jd_logger import logger
-from config import global_config
 
 
 class Timer(object):
     def __init__(self, sleep_interval=0.5):
         # '2018-09-28 22:45:50.000'
-        self.buy_time = datetime.strptime(global_config.getRaw('config','buy_time'), "%Y-%m-%d %H:%M:%S.%f")
+        self.buy_time = self.get_today_buy_time()
         self.buy_time_ms = int(time.mktime(self.buy_time.timetuple()) * 1000.0 + self.buy_time.microsecond / 1000)
         self.sleep_interval = sleep_interval
 
@@ -51,3 +50,16 @@ class Timer(object):
                 break
             else:
                 time.sleep(self.sleep_interval)
+                
+    @staticmethod
+    def get_today_buy_time() -> datetime:
+        """
+        获取抢购开始时间
+        :return:
+        """
+        buy_time_str = datetime.now().strftime("%Y-%m-%d") + " 09:59:59.500"
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        if buy_time_str < now_str:
+            buy_time_str = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d") + " 09:59:59.500"
+        buy_time = datetime.strptime(buy_time_str, "%Y-%m-%d %H:%M:%S.%f")
+        return buy_time
